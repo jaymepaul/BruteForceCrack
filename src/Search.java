@@ -38,7 +38,7 @@ public class Search {
         // Go into a loop where we try a range of keys starting at the given one
         String plaintext = null;
         // Search from the key that will give us our desired ciphertext
-        for (int i=0; i<100; i++) {
+        for (int i=0; i< keySize; i++) {
             // tell user which key is being checked
             String keyStr = bi.toString();
             System.out.print(keyStr);
