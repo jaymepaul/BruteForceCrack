@@ -46,7 +46,7 @@ public class Connection extends Thread
 				}
 				if (line.equals("Knock, knock")) {
 					response = "Who's there?";
-				} else if (line.equals("A broken pencil.")) {
+				} else if (line.equals("A broken pencil")) {
 					response = "A broken pencil who?";
 				} else if (line.equals("Never mind, its pointless.")) {
 					response = "<<<<groan>>>>";
