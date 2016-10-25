@@ -32,9 +32,9 @@ public class EchoClient
 			// send a sequence of messages and print the replies
 			out.println("Knock, knock");
 			System.out.println(in.readLine());
-			out.println("Canoe");
+			out.println("A broken pencil");
 			System.out.println(in.readLine());
-			out.println("Canoe do my homework?");
+			out.println("Never mind, its pointless.");
 			System.out.println(in.readLine());
 			out.println("bye");
 		}
