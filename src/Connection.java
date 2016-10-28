@@ -41,22 +41,58 @@ public class Connection extends Thread
 			while (true) {
 				String line = networkBin.readLine();
 				System.out.println("Client "+count+": "+line);
+				
 				if ( (line == null) || line.equals("bye")) {
 					break;
 				}
-				if (line.equals("Knock, knock")) {
-					response = "Who's there?";
-				} else if (line.equals("A broken pencil")) {
-					response = "A broken pencil who?";
-				} else if (line.equals("Never mind, its pointless.")) {
-					response = "<<<<groan>>>>";
+				else if(line.equals("Requesting Work..")){
+					
+					response = "Server: Find the Key with these Parameters..\n";
+					response += "Server: StartKey: | ChunkSize: | CipherText:\n";
+					
+					response += "Server: Closing Connection..\n";	
+					//client.close();
+					
+					// send the response plus a return and newlines (as expected by readLine)
+					networkPout.write(response+"\r\n");
+					System.out.println("Server: "+response);
+					
+					// force the send to prevent buffering
+					networkPout.flush();
+
+					//Do Search
+					
+//					networkPout.write("Re-Opening Connection.. \n");
+//					networkPout.write("Key Not Found - Client Available!");
+					//response = FOUND OR NOT
+					//IF NOT FOUND response = not found, free from task
+			
+				}
+				else if(line.equals("Search Finished!")){
+					
+					line = networkBin.readLine();
+					System.out.println(line);
+					
+					if(line.equals("Key Found!")){
+						//Print Key
+						//Shutdown Manager and Active Threads
+					}
+					else if(line.equals("Key NOT FOUND! - Client Available!")){
+						
+						continue;	//Look to allocate more work
+					}
 				}
 				
-				// send the response plus a return and newlines (as expected by readLine)
-				networkPout.write(response+"\r\n");
-				System.out.println("Server: "+response);
-				// force the send to prevent buffering
-				networkPout.flush();
+//				if ( (line == null) || line.equals("bye")) {
+//					break;
+//				}
+
+				
+//				// send the response plus a return and newlines (as expected by readLine)
+//				networkPout.write(response+"\r\n");
+//				System.out.println("Server: "+response);
+//				// force the send to prevent buffering
+//				networkPout.flush();
 			}
 		}
 		catch (IOException ioe) {

@@ -7,11 +7,21 @@
 
 import java.net.*;
 import java.io.*;
+import java.math.BigInteger;
 
 public class  EchoServer 
 {
 	public static void main(String[] args) throws IOException {
 
+//		BigInteger bi = new BigInteger(args[0]);
+//        int keySize = Integer.parseInt(args[1]);
+//        
+//        byte[] key = Blowfish.asByteArray(bi, keySize);
+//        byte[] ciphertext = Blowfish.fromBase64(args[2]);
+//        
+//        int endSize = (int) Math.pow(8 * keySize, 2.0);
+//        byte[] endKey = Blowfish.asByteArray(bi, endSize);
+		
 		ServerSocket sock = null;
 
 		try {
