@@ -6,22 +6,32 @@
  */
 
 import java.net.*;
+import java.util.Scanner;
 import java.io.*;
+import java.math.*;
 import java.math.BigInteger;
 
 public class  EchoServer 
 {
 	public static void main(String[] args) throws IOException {
 
-//		BigInteger bi = new BigInteger(args[0]);
-//        int keySize = Integer.parseInt(args[1]);
-//        
-//        byte[] key = Blowfish.asByteArray(bi, keySize);
-//        byte[] ciphertext = Blowfish.fromBase64(args[2]);
-//        
-//        int endSize = (int) Math.pow(8 * keySize, 2.0);
-//        byte[] endKey = Blowfish.asByteArray(bi, endSize);
+//=================== INITIALIZE KEYS, SIZE & CIPHERTEXT ===============================		
 		
+		BigInteger key = new BigInteger(args[0]);
+		int keySize = Integer.parseInt(args[1]);
+      
+		BigInteger var = new BigInteger("256");
+		BigInteger endKey = var.pow(keySize);
+		
+		String cipherText = args[2];
+		
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Total Number of Clients:");
+		
+		BigInteger noClients = new BigInteger(sc.next());
+		BigInteger chunkSize = endKey.divide(noClients);
+		
+//================================================================================		
 		ServerSocket sock = null;
 
 		try {
@@ -41,9 +51,20 @@ public class  EchoServer
 				// now listen for connections
 				Socket client = sock.accept();	
 
+				//Adjust chunkSize accordingly
+				if(key.add(chunkSize).compareTo(endKey) == 1){
+					//Compute difference between current key to finish
+					BigInteger diff = endKey.subtract(key);
+					chunkSize = diff.divide(noClients);
+				}
+				
 				// service the connection in a separate thread
-				Connection c = new Connection(client);
+				Connection c = new Connection(client, key, keySize, chunkSize, cipherText, endKey);
+				
+				key = key.add(chunkSize);		//Increment start key
 				c.start();
+				
+				
 			}
 		}
 		catch (IOException ioe) {

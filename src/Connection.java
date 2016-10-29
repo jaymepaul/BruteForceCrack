@@ -4,6 +4,7 @@
  */
 
 import java.io.*;
+import java.math.BigInteger;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,11 +12,24 @@ public class Connection extends Thread
 {
 
 	private static AtomicInteger count = new AtomicInteger(0); // track the connection
+	BigInteger key;
+	BigInteger chunkSize;
+	BigInteger endKey;
+	String cipherText;
+	int keySize;
 	
-	public Connection(Socket c) {
+	public Connection(Socket c, BigInteger key, int keySize, BigInteger chunkSize, String cipherText, BigInteger endKey) {
 		client = c;
 		count.getAndIncrement();
+		
+		this.key = key;
+		this.chunkSize = chunkSize;
+		this.endKey = endKey;
+		this.cipherText = cipherText;
+		this.keySize = keySize;
 	} 
+
+
 
 
 	/**
@@ -42,16 +56,21 @@ public class Connection extends Thread
 				String line = networkBin.readLine();
 				System.out.println("Client "+count+": "+line);
 				
-				if ( (line == null) || line.equals("bye")) {
+				if ( (line == null || key.equals(endKey)) ) {
+					System.out.println("Searched all possible solutions!");
+					System.out.println("Key was not found! -- Manager will shut down!");
+					System.exit(-1);
 					break;
 				}
 				else if(line.equals("Requesting Work..")){
 					
-					response = "Server: Find the Key with these Parameters..\n";
-					response += "Server: StartKey: | ChunkSize: | CipherText:\n";
+					response = "Find the Key with these Parameters..\n";
+					response += "Server: StartKey | ChunkSize | CipherText | EndKey | KeySize \n";
+					response += "Server: | " + key + " | " + chunkSize + " | " + cipherText + " | " + endKey + " | " + keySize + "\n";
 					
 					response += "Server: Closing Connection..\n";	
 					//client.close();
+					//client.connect("localhost")
 					
 					// send the response plus a return and newlines (as expected by readLine)
 					networkPout.write(response+"\r\n");
@@ -76,17 +95,20 @@ public class Connection extends Thread
 					if(line.equals("Key Found!")){
 						//Print Key
 						//Shutdown Manager and Active Threads
+						System.exit(-1);
 					}
 					else if(line.equals("Key NOT FOUND! - Client Available!")){
 						
+						line = networkBin.readLine();
+						System.out.println(line);
+						
+						String[] rn = line.split(":");
+						System.out.println(rn[1]);
+						key = new BigInteger(rn[1]);
 						continue;	//Look to allocate more work
 					}
 				}
 				
-//				if ( (line == null) || line.equals("bye")) {
-//					break;
-//				}
-
 				
 //				// send the response plus a return and newlines (as expected by readLine)
 //				networkPout.write(response+"\r\n");

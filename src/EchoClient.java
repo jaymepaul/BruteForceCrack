@@ -13,13 +13,20 @@ import java.math.BigInteger;
 public class EchoClient
 {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		if (args.length < 2) {
 			System.err.println("Usage: java EchoClient <IP address> <Port number>");
 			System.exit(0);
 		}
 
 //		/BigInteger chunkSize = new BigInteger(args[2]);			//chunkSize - # of keys
+		
+		//Serch Parameters..
+		BigInteger bi = null;
+		BigInteger chunkSize = null;
+		BigInteger endKey = null;
+		String cipher = null;
+		int keySize = 0;
 		
 		BufferedReader in = null;
 		PrintWriter out = null;
@@ -34,7 +41,7 @@ public class EchoClient
 
 			
 			//Initial Case
-			out.println("Requesting Work..");
+			out.println("Requesting Work..\n");
 			
 			String line = in.readLine();
 			
@@ -43,50 +50,98 @@ public class EchoClient
 				
 				
 				if(line.equals("Find the Key with these Parameters..")){
+					
+					line = in.readLine();
+					System.out.println(line);		//Display..
+					
+					line = in.readLine();
+					System.out.println(line);
+					String[] params = line.split(" | ");
+					
 					out.println("Loading Client Search Parameters..");
 					System.out.println("Loading Search Parameters..");
 					
 					//Load Parameters..
+					bi = new BigInteger(params[2]);
+					chunkSize = new BigInteger(params[4]);
+					cipher = params[6];
+					endKey = new BigInteger(params[8]);
+					keySize = Integer.parseInt(params[10]);
+					
 					
 					out.println("Parameters Loaded!");
 					System.out.println("Parameters Loaded!");
 				}
 				else if(line.equals("Server: Closing Connection..")){
 					out.println("Performing Search..");
+					System.out.println("Performing Search..");
 					
 					//Do Search..
 					out.println("..");
+					System.out.println("..");
 					
-					//Send Result
-					out.println("Search Finished!");
-					//Check if key found or not
-					//if(keyFound..)
-						//out.println("Key Found! " + key);
-					//else
-						out.println("Key NOT FOUND! - Client Available!");
-						out.println("Requesting Work..");
+					byte[] cipherText = Blowfish.fromBase64(cipher);
+					byte[] key = Blowfish.asByteArray(bi, keySize);
+					
+					 // Go into a loop where we try a range of keys starting at the given one
+			        String plaintext = null;
+			        BigInteger range = bi.add(chunkSize);	//from currentKey to end range
+			       
+			  
+			        // Search from the key that will give us our desired ciphertext - currentKey + chunkSize
+			        for (BigInteger i = new BigInteger(bi.toString()); i.compareTo(range) == -1; i = i.add(BigInteger.ONE)) {
+			            // tell user which key is being checked
+			            String keyStr = bi.toString();
+			            System.out.print(keyStr);
+			            Thread.sleep(100);
+			            for (int j=0; j<keyStr.length();j++) {
+			                System.out.print("\b");
+			            }
+			            // decrypt and compare to known plaintext
+			            Blowfish.setKey(key);        
+			            plaintext = Blowfish.decryptToString(cipherText);
+			            if (plaintext.equals("May good flourish; Kia hua ko te pai")) {
+			               
+			            	out.println("Search Finished!");
+							System.out.println("Search Finished!");
+			            	
+			            	System.out.println("Plaintext found!");
+			                System.out.println(plaintext);
+			                out.println("Plaintext found!");
+			                out.println(plaintext);
+			                
+			                System.out.println("key is (hex) " + Blowfish.toHex(key) + " " + bi);
+			                System.out.println("Key Found!");
+			                out.println("key is (hex) " + Blowfish.toHex(key) + " " + bi);
+			                out.println("Key Found!");
+			                
+			                System.exit(-1);
+			            } 
+			            
+			            // try the next key
+			            bi = bi.add(BigInteger.ONE);
+			            key = Blowfish.asByteArray(bi,keySize);
+			        }
+			        
+			        //NO KEY FOUND!
+			        out.println("Search Finished!");
+					System.out.println("Search Finished!");
+			        
+			        System.out.println("No key found!");
+					
+			        //REQUEST FOR MORE WORK!
+			        out.println("Key NOT FOUND! - Client Available!");
+			        out.println("Search Ended @ Key:" + range);
+			        out.println("Requesting Work..");
+					System.out.println("Requesting Work..");
+					
+						
 				}
 				
 				line = in.readLine();	//Read Next Line..
 				
 			}
-			//System.out.println(in.readLine());
 			
-			//Server says key not found 
-			while(in.readLine().equals("Key Not Found - Client Available!")){
-				out.println("Requesting Work..");
-				//Skip to readLine that shows search results
-				for(int i = 0; i < 5; i++){in.readLine();}				
-			}
-			
-		//	 send a sequence of messages and print the replies
-//			out.println("Knock, knock");
-//			System.out.println(in.readLine());
-//			out.println("A broken pencil");
-//			System.out.println(in.readLine());
-//			out.println("Never mind, its pointless.");
-//			System.out.println(in.readLine());
-//			out.println("bye");
 		}
 		catch (IOException ioe) {
 			System.err.println(ioe);
