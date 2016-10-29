@@ -56,7 +56,7 @@ public class Connection extends Thread
 				String line = networkBin.readLine();
 				System.out.println("Client "+count+": "+line);
 				
-				if ( (line == null || key.equals(endKey)) ) {
+				if ( ( key.equals(endKey)) ) {
 					System.out.println("Searched all possible solutions!");
 					System.out.println("Key was not found! -- Manager will shut down!");
 					System.exit(-1);
