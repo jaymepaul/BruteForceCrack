@@ -9,7 +9,7 @@ import java.net.*;
 import java.util.Scanner;
 import java.io.*;
 import java.math.*;
-import java.math.BigInteger;
+
 
 public class  EchoServer 
 {
@@ -47,9 +47,22 @@ public class  EchoServer
 			 * creating a separate thread for each new request
 			 * is known as the "thread-per-message" approach.
 			 */
+			
+			boolean timeStart = false;
+			long startTime = 0;
+			
 			while (true) {
+				
 				// now listen for connections
-				Socket client = sock.accept();	
+				Socket client = sock.accept();
+				timeStart = true;
+				
+				//start timer
+				
+				if(timeStart){
+					startTime = System.nanoTime();
+					timeStart = false;
+				}
 
 				//Adjust chunkSize accordingly
 				if(key.add(chunkSize).compareTo(endKey) == 1){
@@ -59,7 +72,7 @@ public class  EchoServer
 				}
 				
 				// service the connection in a separate thread
-				Connection c = new Connection(client, key, keySize, chunkSize, cipherText, endKey);
+				Connection c = new Connection(client, key, keySize, chunkSize, cipherText, endKey, startTime);
 				
 				key = key.add(chunkSize);		//Increment start key
 				c.start();

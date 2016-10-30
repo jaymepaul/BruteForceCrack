@@ -17,8 +17,9 @@ public class Connection extends Thread
 	BigInteger endKey;
 	String cipherText;
 	int keySize;
+	long startTime;
 	
-	public Connection(Socket c, BigInteger key, int keySize, BigInteger chunkSize, String cipherText, BigInteger endKey) {
+	public Connection(Socket c, BigInteger key, int keySize, BigInteger chunkSize, String cipherText, BigInteger endKey, long startTime) {
 		client = c;
 		count.getAndIncrement();
 		
@@ -27,11 +28,12 @@ public class Connection extends Thread
 		this.endKey = endKey;
 		this.cipherText = cipherText;
 		this.keySize = keySize;
+		this.startTime = startTime;
 	} 
 
 
 
-
+ 
 	/**
 	 * this method is invoked as a separate thread
 	 */
@@ -56,35 +58,48 @@ public class Connection extends Thread
 				String line = networkBin.readLine();
 				System.out.println("Client "+count+": "+line);
 				
-				if ( ( key.equals(endKey)) ) {
+				if(line == null){
+					
+					long stopTime = System.nanoTime();
+					long totalTime = stopTime - startTime;
+					
+					System.out.println("KEY HAS BEEN FOUND - MANAGER SHUT DOWN!");
+					System.out.println("Elapsed Time: " + totalTime + "ns\n");
+
+					System.exit(-1);
+				}
+				
+				else if ( ( key.equals(endKey)) ) {
+					
 					System.out.println("Searched all possible solutions!");
+					
+					long stopTime = System.nanoTime();
+					long totalTime = stopTime - startTime;
+					
+					System.out.println("Elapsed Time: " + totalTime + "ns\n");
+					
 					System.out.println("Key was not found! -- Manager will shut down!");
 					System.exit(-1);
 					break;
 				}
+				
 				else if(line.equals("Requesting Work..")){
 					
 					response = "Find the Key with these Parameters..\n";
-					response += "Server: StartKey | ChunkSize | CipherText | EndKey | KeySize \n";
-					response += "Server: | " + key + " | " + chunkSize + " | " + cipherText + " | " + endKey + " | " + keySize + "\n";
+					response += "Server: StartKey | ChunkSize | CipherText | EndKey | KeySize | StartTime \n";
+					response += "Server: | " + key + " | " + chunkSize + " | " + cipherText + " | " + endKey + " | " + keySize + " | " + startTime + "\n";
 					
 					response += "Server: Closing Connection..\n";	
-					//client.close();
+					
 					//client.connect("localhost")
 					
 					// send the response plus a return and newlines (as expected by readLine)
 					networkPout.write(response+"\r\n");
 					System.out.println("Server: "+response);
-					
 					// force the send to prevent buffering
 					networkPout.flush();
 
-					//Do Search
-					
-//					networkPout.write("Re-Opening Connection.. \n");
-//					networkPout.write("Key Not Found - Client Available!");
-					//response = FOUND OR NOT
-					//IF NOT FOUND response = not found, free from task
+
 			
 				}
 				else if(line.equals("Search Finished!")){
@@ -92,6 +107,7 @@ public class Connection extends Thread
 					line = networkBin.readLine();
 					System.out.println(line);
 					
+	
 					if(line.equals("Key Found!")){
 						//Print Key
 						//Shutdown Manager and Active Threads
@@ -110,11 +126,7 @@ public class Connection extends Thread
 				}
 				
 				
-//				// send the response plus a return and newlines (as expected by readLine)
-//				networkPout.write(response+"\r\n");
-//				System.out.println("Server: "+response);
-//				// force the send to prevent buffering
-//				networkPout.flush();
+
 			}
 		}
 		catch (IOException ioe) {

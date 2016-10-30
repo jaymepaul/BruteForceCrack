@@ -27,6 +27,7 @@ public class EchoClient
 		BigInteger endKey = null;
 		String cipher = null;
 		int keySize = 0;
+		long startTime = 0;
 		
 		BufferedReader in = null;
 		PrintWriter out = null;
@@ -34,18 +35,18 @@ public class EchoClient
 
 		try {
 			sock = new Socket(args[0], Integer.parseInt(args[1]));		//uses this to connect to the server
-
+			
+			
 			// set up the necessary communication channels
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			out = new PrintWriter(sock.getOutputStream(),true);
 
-			
 			//Initial Case
 			out.println("Requesting Work..\n");
 			
 			String line = in.readLine();
 			
-			
+			outer:
 			while(line != null){
 				
 				
@@ -67,6 +68,7 @@ public class EchoClient
 					cipher = params[6];
 					endKey = new BigInteger(params[8]);
 					keySize = Integer.parseInt(params[10]);
+					startTime = Long.parseLong(params[12]);
 					
 					
 					out.println("Parameters Loaded!");
@@ -102,6 +104,8 @@ public class EchoClient
 			            plaintext = Blowfish.decryptToString(cipherText);
 			            if (plaintext.equals("May good flourish; Kia hua ko te pai")) {
 			               
+			            	
+			            	
 			            	out.println("Search Finished!");
 							System.out.println("Search Finished!");
 			            	
@@ -115,13 +119,22 @@ public class EchoClient
 			                out.println("key is (hex) " + Blowfish.toHex(key) + " " + bi);
 			                out.println("Key Found!");
 			                
-			                System.exit(-1);
+			                long stopTime = System.nanoTime();
+							long totalTime = stopTime - startTime;
+							
+							System.out.println("Elapsed Time: " + totalTime + "ns\n");
+							out.println("Elapsed Time: " + totalTime + "ns\n");
+			                
+							break outer;
+			               //System.exit(-1);
 			            } 
 			            
 			            // try the next key
 			            bi = bi.add(BigInteger.ONE);
 			            key = Blowfish.asByteArray(bi,keySize);
 			        }
+			        
+			      
 			        
 			        //NO KEY FOUND!
 			        out.println("Search Finished!");
