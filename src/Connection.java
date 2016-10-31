@@ -12,6 +12,8 @@ public class Connection extends Thread
 {
 
 	private static AtomicInteger count = new AtomicInteger(0); // track the connection
+	
+	//Search Paramters..
 	BigInteger key;
 	BigInteger chunkSize;
 	BigInteger endKey;
@@ -55,73 +57,98 @@ public class Connection extends Thread
 			 */
 			String response = null;
 			while (true) {
+				
 				String line = networkBin.readLine();
 				System.out.println("Client "+count+": "+line);
 				
-				if(line == null){
+				//Condition: Check to see if we have exhausted ALL key-spaces
+				//If so, then report time it took and shut down manager
+				if ( ( key.equals(endKey)) ) {
+					
+					System.out.println("\nServer: Key Space has been exhausted!");
+					System.out.println("Server: Searched all possible solutions! - No work left to be done!");
 					
 					long stopTime = System.nanoTime();
 					long totalTime = stopTime - startTime;
 					
-					System.out.println("KEY HAS BEEN FOUND - MANAGER SHUT DOWN!");
-					System.out.println("Elapsed Time: " + totalTime + "ns\n");
-
-					System.exit(-1);
-				}
-				
-				else if ( ( key.equals(endKey)) ) {
-					
-					System.out.println("Searched all possible solutions!");
-					
-					long stopTime = System.nanoTime();
-					long totalTime = stopTime - startTime;
-					
-					System.out.println("Elapsed Time: " + totalTime + "ns\n");
+					System.out.println("Total Search Time: " + totalTime + "ns\n");
 					
 					System.out.println("Key was not found! -- Manager will shut down!");
 					System.exit(-1);
 					break;
 				}
-				
+				//Condition: When a client requests for work.. 
+				//Feed it the appropriate search parameters..
 				else if(line.equals("Requesting Work..")){
+					
 					
 					response = "Find the Key with these Parameters..\n";
 					response += "Server: StartKey | ChunkSize | CipherText | EndKey | KeySize | StartTime \n";
 					response += "Server: | " + key + " | " + chunkSize + " | " + cipherText + " | " + endKey + " | " + keySize + " | " + startTime + "\n";
 					
-					response += "Server: Closing Connection..\n";	
-					
-					//client.connect("localhost")
+					response += "Server: Sending Search Parameters..\n";	
 					
 					// send the response plus a return and newlines (as expected by readLine)
 					networkPout.write(response+"\r\n");
-					System.out.println("Server: "+response);
+					System.out.println("\nServer: "+response);
 					// force the send to prevent buffering
 					networkPout.flush();
-
-
 			
 				}
+				//Condition: When a client indicates they have finished executing their task
+				//Check to see if key found or not - allocate more work | shutdown
 				else if(line.equals("Search Finished!")){
 					
 					line = networkBin.readLine();
-					System.out.println(line);
+					System.out.println();
 					
-	
 					if(line.equals("Key Found!")){
 						//Print Key
 						//Shutdown Manager and Active Threads
+						long stopTime = System.nanoTime();
+						long totalTime = stopTime - startTime;
+						
+						line = networkBin.readLine(); line = networkBin.readLine();
+						
+						//PlainText
+						System.out.println("Server: PlainText: " + line);
+						//Key
+						line = networkBin.readLine();
+						System.out.println("Server: "+line);
+						//Client Time
+						line = networkBin.readLine();
+						System.out.println("Server: "+line);
+						
+						System.out.println("Server: KEY HAS BEEN FOUND - MANAGER SHUT DOWN!");
+						System.out.println("Server: Total Search Time: " + totalTime + "ns");
+						
 						System.exit(-1);
 					}
-					else if(line.equals("Key NOT FOUND! - Client Available!")){
+					else if(line.equals("KEY NOT FOUND! - Client Available!")){
 						
 						line = networkBin.readLine();
 						System.out.println(line);
 						
 						String[] rn = line.split(":");
-						System.out.println(rn[1]);
 						key = new BigInteger(rn[1]);
-						continue;	//Look to allocate more work
+						
+						//Check to see if current key has exhausted key space
+						if(key.equals(endKey)){
+							System.out.println("\nServer: Key Space has been exhausted!");
+							System.out.println("Server: Searched all possible solutions! - No work left to be done!");
+							
+							long stopTime = System.nanoTime();
+							long totalTime = stopTime - startTime;
+							
+							System.out.println("Total Search Time: " + totalTime + "ns\n");
+							
+							System.out.println("Key was not found! -- Manager will shut down!");
+							System.exit(-1);
+							break;
+						}
+						else{
+							line = "Requesting Work..";	//Look to allocate more work
+						}
 					}
 				}
 				

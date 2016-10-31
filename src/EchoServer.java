@@ -20,7 +20,7 @@ public class  EchoServer
 		BigInteger key = new BigInteger(args[0]);
 		int keySize = Integer.parseInt(args[1]);
       
-		BigInteger var = new BigInteger("256");
+		BigInteger var = new BigInteger("255");
 		BigInteger endKey = var.pow(keySize);
 		
 		String cipherText = args[2];
@@ -50,6 +50,7 @@ public class  EchoServer
 			
 			boolean timeStart = false;
 			long startTime = 0;
+			boolean end = false;
 			
 			while (true) {
 				
@@ -58,7 +59,6 @@ public class  EchoServer
 				timeStart = true;
 				
 				//start timer
-				
 				if(timeStart){
 					startTime = System.nanoTime();
 					timeStart = false;
@@ -69,12 +69,13 @@ public class  EchoServer
 					//Compute difference between current key to finish
 					BigInteger diff = endKey.subtract(key);
 					chunkSize = diff.divide(noClients);
+					
 				}
 				
 				// service the connection in a separate thread
 				Connection c = new Connection(client, key, keySize, chunkSize, cipherText, endKey, startTime);
 				
-				key = key.add(chunkSize);		//Increment start key
+				key = key.add(chunkSize);		//Increment start key to most recent key
 				c.start();
 				
 				
